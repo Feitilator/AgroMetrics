@@ -1,23 +1,43 @@
+import os
+import time
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 import openmeteo_requests
 import requests_cache
-
 from retry_requests import retry
 
 
+# ============================================================
+# НАСТРОЙКИ
+# ============================================================
 
+HISTORICAL_URL = (
+    "https://archive-api.open-meteo.com/v1/archive"
+)
+
+CACHE_DIR = Path(".cache")
+DATA_CACHE_DIR = Path(".weather_cache")
+
+CACHE_DIR.mkdir(exist_ok=True)
+DATA_CACHE_DIR.mkdir(exist_ok=True)
+
+
+# ============================================================
+# OPEN-METEO CLIENT
+# ============================================================
 
 cache_session = requests_cache.CachedSession(
-    ".cache",
+    str(CACHE_DIR),
     expire_after=3600
 )
 
 retry_session = retry(
     cache_session,
     retries=5,
-    backoff_factor=0.2
+    backoff_factor=0.5
 )
 
 openmeteo = openmeteo_requests.Client(
@@ -25,11 +45,9 @@ openmeteo = openmeteo_requests.Client(
 )
 
 
-HISTORICAL_URL = (
-    "https://archive-api.open-meteo.com/v1/archive"
-)
-
-
+# ============================================================
+# VARIABLES
+# ============================================================
 
 ERA5_LAND_VARIABLES = [
 
@@ -53,8 +71,6 @@ ERA5_LAND_VARIABLES = [
 ]
 
 
-
-
 ERA5_VARIABLES = [
 
     "precipitation",
@@ -69,17 +85,13 @@ ERA5_VARIABLES = [
 ]
 
 
+# ============================================================
+# TIMESTAMPS
+# ============================================================
 
 def build_api_timestamps(hourly):
 
-
-    if len(ERA5_LAND_VARIABLES) > 0:
-
-        first_variable = hourly.Variables(0)
-
-    else:
-
-        first_variable = hourly.Variables(0)
+    first_variable = hourly.Variables(0)
 
     values = first_variable.ValuesAsNumpy()
 
@@ -91,13 +103,11 @@ def build_api_timestamps(hourly):
 
     timestamps = (
         start_timestamp
-        +
-        np.arange(
+        + np.arange(
             n,
             dtype=np.int64
         )
-        *
-        interval_seconds
+        * interval_seconds
     )
 
     dates = pd.to_datetime(
@@ -106,13 +116,14 @@ def build_api_timestamps(hourly):
         utc=True
     )
 
-
     dates = dates.tz_localize(None)
 
     return dates
 
 
-
+# ============================================================
+# DOWNLOAD ONE PERIOD
+# ============================================================
 
 def download_hourly(
     latitude,
@@ -121,14 +132,14 @@ def download_hourly(
     end_date,
     timezone,
     model,
-    variables
+    variables,
+    max_attempts=5
 ):
 
     print()
     print("=" * 70)
-    print(
-        f"Downloading {model}"
-    )
+    print(f"DOWNLOADING {model.upper()}")
+    print(f"{start_date} -> {end_date}")
     print("=" * 70)
 
     params = {
@@ -143,6 +154,7 @@ def download_hourly(
 
         "hourly": variables,
 
+        # API timestamps are kept in UTC.
         "timezone": "UTC",
 
         "temperature_unit": "celsius",
@@ -156,128 +168,471 @@ def download_hourly(
         "cell_selection": "land",
     }
 
-    responses = openmeteo.weather_api(
-        HISTORICAL_URL,
-        params=params
-    )
 
-    response = responses[0]
-
-    print(
-        "Grid:",
-        response.Latitude(),
-        response.Longitude()
-    )
-
-    print(
-        "Elevation:",
-        response.Elevation()
-    )
-
-    hourly = response.Hourly()
+    last_error = None
 
 
-    dates = build_api_timestamps(
-        hourly
-    )
-
-
-
-    data = {
-
-        "date": dates
-    }
-
-    for i, variable_name in enumerate(
-        variables
+    for attempt in range(
+        1,
+        max_attempts + 1
     ):
 
-        values = (
-            hourly
-            .Variables(i)
-            .ValuesAsNumpy()
-        )
-
         print(
-            f"{variable_name:45s}",
-            len(values)
+            f"[Open-Meteo] Attempt "
+            f"{attempt}/{max_attempts}"
         )
 
-        if len(values) != len(dates):
+        try:
 
-            raise ValueError(
-                f"Length mismatch for "
-                f"{variable_name}: "
-                f"{len(values)} != {len(dates)}"
+            start_time = time.time()
+
+            responses = openmeteo.weather_api(
+                HISTORICAL_URL,
+                params=params
             )
 
-        data[
-            variable_name
-        ] = values
+            elapsed = time.time() - start_time
 
-    df = pd.DataFrame(
-        data
-    )
-
-
-
-    print()
-    print(
-        "Shape:",
-        df.shape
-    )
-
-    duplicate_count = (
-        df["date"]
-        .duplicated()
-        .sum()
-    )
-
-    print(
-        "Duplicate timestamps:",
-        duplicate_count
-    )
-
-    if duplicate_count > 0:
-
-        duplicates = (
-            df.loc[
-                df["date"].duplicated(
-                    keep=False
-                ),
-                "date"
-            ]
-            .drop_duplicates()
-            .head(20)
-        )
-
-        print(
-            duplicates.to_string(
-                index=False
+            print(
+                f"[Open-Meteo] Response received "
+                f"in {elapsed:.1f}s"
             )
+
+            if not responses:
+
+                raise RuntimeError(
+                    "Open-Meteo returned no responses."
+                )
+
+            response = responses[0]
+
+            print(
+                "Grid:",
+                response.Latitude(),
+                response.Longitude()
+            )
+
+            print(
+                "Elevation:",
+                response.Elevation()
+            )
+
+
+            hourly = response.Hourly()
+
+
+            dates = build_api_timestamps(
+                hourly
+            )
+
+
+            data = {
+                "date": dates
+            }
+
+
+            for i, variable_name in enumerate(
+                variables
+            ):
+
+                values = (
+                    hourly
+                    .Variables(i)
+                    .ValuesAsNumpy()
+                )
+
+                print(
+                    f"{variable_name:45s}"
+                    f"{len(values):8d}"
+                )
+
+                if len(values) != len(dates):
+
+                    raise ValueError(
+                        f"Length mismatch for "
+                        f"{variable_name}: "
+                        f"{len(values)} != "
+                        f"{len(dates)}"
+                    )
+
+                data[
+                    variable_name
+                ] = values
+
+
+            df = pd.DataFrame(data)
+
+
+            duplicate_count = (
+                df["date"]
+                .duplicated()
+                .sum()
+            )
+
+
+            if duplicate_count > 0:
+
+                raise ValueError(
+                    f"{model}: "
+                    f"duplicate timestamps detected: "
+                    f"{duplicate_count}"
+                )
+
+
+            print()
+
+            print(
+                "Shape:",
+                df.shape
+            )
+
+            print(
+                "Date:",
+                df["date"].min(),
+                "->",
+                df["date"].max()
+            )
+
+            print(
+                "Duplicate timestamps:",
+                duplicate_count
+            )
+
+
+            nan_count = (
+                df.isna()
+                .sum()
+                .sum()
+            )
+
+            print(
+                "Total NaN:",
+                nan_count
+            )
+
+
+            print()
+
+            print(
+                "[OK] Download completed."
+            )
+
+
+            return df
+
+
+        except Exception as error:
+
+            last_error = error
+
+            print()
+            print(
+                f"[ERROR] Attempt "
+                f"{attempt}/{max_attempts} failed:"
+            )
+
+            print(
+                repr(error)
+            )
+
+
+            if attempt < max_attempts:
+
+                wait_time = min(
+                    10 * attempt,
+                    60
+                )
+
+                print(
+                    f"Retrying in "
+                    f"{wait_time} seconds..."
+                )
+
+                time.sleep(
+                    wait_time
+                )
+
+
+    raise RuntimeError(
+        f"Failed to download "
+        f"{model} data for "
+        f"{start_date} -> {end_date} "
+        f"after {max_attempts} attempts."
+    ) from last_error
+
+
+# ============================================================
+# CACHE FILE NAME
+# ============================================================
+
+def get_cache_filename(
+    model,
+    start_date,
+    end_date
+):
+
+    return (
+        DATA_CACHE_DIR
+        / f"{model}_{start_date}_{end_date}.csv"
+    )
+
+
+# ============================================================
+# DOWNLOAD WITH LOCAL CACHE
+# ============================================================
+
+def download_period_cached(
+    latitude,
+    longitude,
+    start_date,
+    end_date,
+    timezone,
+    model,
+    variables
+):
+
+    cache_file = get_cache_filename(
+        model,
+        start_date,
+        end_date
+    )
+
+
+    # --------------------------------------------------------
+    # USE EXISTING CACHE
+    # --------------------------------------------------------
+
+    if cache_file.exists():
+
+        print()
+        print(
+            f"[CACHE] Found:"
+            f" {cache_file}"
         )
 
-        raise ValueError(
-            f"{model}: duplicate timestamps detected."
-        )
+        try:
 
-    print()
-    print(
-        "NaN:"
+            df = pd.read_csv(
+                cache_file,
+                parse_dates=["date"]
+            )
+
+            print(
+                f"[CACHE] Loaded "
+                f"{len(df)} rows."
+            )
+
+            return df
+
+        except Exception as error:
+
+            print(
+                "[CACHE] Failed to read "
+                "cache file."
+            )
+
+            print(
+                repr(error)
+            )
+
+            print(
+                "[CACHE] Downloading again..."
+            )
+
+
+    # --------------------------------------------------------
+    # DOWNLOAD
+    # --------------------------------------------------------
+
+    df = download_hourly(
+
+        latitude=latitude,
+
+        longitude=longitude,
+
+        start_date=start_date,
+
+        end_date=end_date,
+
+        timezone=timezone,
+
+        model=model,
+
+        variables=variables
+    )
+
+
+    # --------------------------------------------------------
+    # SAVE CACHE
+    # --------------------------------------------------------
+
+    df.to_csv(
+        cache_file,
+        index=False
     )
 
     print(
-        df.isna()
-        .sum()
-        .sort_values(
-            ascending=False
-        )
+        f"[CACHE] Saved:"
+        f" {cache_file}"
     )
+
 
     return df
 
 
+# ============================================================
+# YEAR GENERATOR
+# ============================================================
 
+def generate_periods(
+    start_date,
+    end_date
+):
+
+    start = pd.Timestamp(
+        start_date
+    )
+
+    end = pd.Timestamp(
+        end_date
+    )
+
+
+    current = start
+
+
+    while current <= end:
+
+        year_end = pd.Timestamp(
+            year=current.year,
+            month=12,
+            day=31
+        )
+
+        period_end = min(
+            year_end,
+            end
+        )
+
+
+        yield (
+            current.strftime("%Y-%m-%d"),
+            period_end.strftime("%Y-%m-%d")
+        )
+
+
+        current = (
+            period_end
+            + pd.Timedelta(days=1)
+        )
+
+
+# ============================================================
+# DOWNLOAD MULTIPLE YEARS
+# ============================================================
+
+def download_by_periods(
+    latitude,
+    longitude,
+    start_date,
+    end_date,
+    timezone,
+    model,
+    variables
+):
+
+    parts = []
+
+
+    periods = list(
+        generate_periods(
+            start_date,
+            end_date
+        )
+    )
+
+
+    print()
+    print("=" * 70)
+    print(
+        f"{model.upper()} PERIODS: "
+        f"{len(periods)}"
+    )
+    print("=" * 70)
+
+
+    for index, (
+        period_start,
+        period_end
+    ) in enumerate(
+        periods,
+        start=1
+    ):
+
+        print()
+        print(
+            f"[{index}/{len(periods)}] "
+            f"{period_start} -> {period_end}"
+        )
+
+
+        part = download_period_cached(
+
+            latitude=latitude,
+
+            longitude=longitude,
+
+            start_date=period_start,
+
+            end_date=period_end,
+
+            timezone=timezone,
+
+            model=model,
+
+            variables=variables
+        )
+
+
+        parts.append(part)
+
+
+    if not parts:
+
+        raise RuntimeError(
+            f"No weather data downloaded "
+            f"for {model}."
+        )
+
+
+    df = pd.concat(
+        parts,
+        ignore_index=True
+    )
+
+
+    df["date"] = pd.to_datetime(
+        df["date"]
+    )
+
+
+    df = (
+        df
+        .sort_values("date")
+        .drop_duplicates(
+            subset=["date"],
+            keep="first"
+        )
+        .reset_index(drop=True)
+    )
+
+
+    return df
+
+
+# ============================================================
+# GET HISTORICAL WEATHER
+# ============================================================
 
 def get_historical_weather(
     latitude,
@@ -293,16 +648,21 @@ def get_historical_weather(
     print("=" * 70)
 
     print(
-        f"Location: {latitude}, {longitude}"
+        f"Location: "
+        f"{latitude}, {longitude}"
     )
 
     print(
-        f"Period: {start_date} → {end_date}"
+        f"Period: "
+        f"{start_date} -> {end_date}"
     )
 
 
+    # ========================================================
+    # ERA5-LAND
+    # ========================================================
 
-    land = download_hourly(
+    land = download_by_periods(
 
         latitude=latitude,
 
@@ -320,7 +680,11 @@ def get_historical_weather(
     )
 
 
-    era5 = download_hourly(
+    # ========================================================
+    # ERA5
+    # ========================================================
+
+    era5 = download_by_periods(
 
         latitude=latitude,
 
@@ -338,10 +702,15 @@ def get_historical_weather(
     )
 
 
+    # ========================================================
+    # CHECK
+    # ========================================================
+
     print()
     print("=" * 70)
     print("CHECKING TIMESTAMPS BEFORE MERGE")
     print("=" * 70)
+
 
     print(
         "ERA5-Land rows:",
@@ -357,6 +726,7 @@ def get_historical_weather(
         "ERA5-Land duplicated:",
         land["date"].duplicated().sum()
     )
+
 
     print()
 
@@ -379,20 +749,28 @@ def get_historical_weather(
     if land["date"].duplicated().any():
 
         raise ValueError(
-            "ERA5-Land contains duplicate timestamps."
+            "ERA5-Land contains "
+            "duplicate timestamps."
         )
+
 
     if era5["date"].duplicated().any():
 
         raise ValueError(
-            "ERA5 contains duplicate timestamps."
+            "ERA5 contains "
+            "duplicate timestamps."
         )
 
+
+    # ========================================================
+    # MERGE
+    # ========================================================
 
     print()
     print(
         "Merging ERA5-Land + ERA5..."
     )
+
 
     df = pd.merge(
 
@@ -407,12 +785,6 @@ def get_historical_weather(
         validate="one_to_one"
     )
 
-    print(
-        "Merged shape:",
-        df.shape
-    )
-
-
 
     df = (
         df
@@ -421,7 +793,27 @@ def get_historical_weather(
     )
 
 
+    print(
+        "Merged shape:",
+        df.shape
+    )
+
+
     print()
+
+    print(
+        "Merged date:"
+    )
+
+    print(
+        df["date"].min(),
+        "->",
+        df["date"].max()
+    )
+
+
+    print()
+
     print(
         "Merged NaN:"
     )
@@ -434,10 +826,13 @@ def get_historical_weather(
         )
     )
 
+
     return df
 
 
-
+# ============================================================
+# HOURLY -> DAILY
+# ============================================================
 
 def hourly_to_daily(
     hourly_df
@@ -445,9 +840,11 @@ def hourly_to_daily(
 
     df = hourly_df.copy()
 
+
     df["date"] = pd.to_datetime(
         df["date"]
     )
+
 
     df = (
         df
@@ -456,6 +853,9 @@ def hourly_to_daily(
     )
 
 
+    # ========================================================
+    # DAILY AGGREGATION
+    # ========================================================
 
     daily = (
         df
@@ -517,6 +917,10 @@ def hourly_to_daily(
     )
 
 
+    # ========================================================
+    # FLATTEN COLUMNS
+    # ========================================================
+
     daily.columns = [
 
         "t_mean",
@@ -547,56 +951,88 @@ def hourly_to_daily(
         "soil_temp_28_100",
     ]
 
+
     daily = daily.reset_index()
 
 
+    # ========================================================
+    # SOIL MOISTURE
+    # ========================================================
 
     daily["soil_moisture"] = (
+
         daily[
+
             [
+
                 "soil_moisture_0_7",
+
                 "soil_moisture_7_28",
+
                 "soil_moisture_28_100"
+
             ]
+
         ]
+
         .mean(axis=1)
     )
 
+
+    # ========================================================
+    # SOIL TEMPERATURE
+    # ========================================================
 
     daily["soil_temperature"] = (
+
         daily[
+
             [
+
                 "soil_temp_0_7",
+
                 "soil_temp_7_28",
+
                 "soil_temp_28_100"
+
             ]
+
         ]
+
         .mean(axis=1)
     )
 
 
+    # ========================================================
+    # DIAGNOSTICS
+    # ========================================================
 
     print()
     print("=" * 70)
     print("DAILY DATA")
     print("=" * 70)
 
+
     print(
         "Shape:",
         daily.shape
     )
 
+
     print(
         "Date:",
         daily["date"].min(),
-        "→",
+        "->",
         daily["date"].max()
     )
 
+
     print()
+
     print(
         "NaN:"
     )
+
 
     print(
         daily.isna()
@@ -605,5 +1041,6 @@ def hourly_to_daily(
             ascending=False
         )
     )
+
 
     return daily
