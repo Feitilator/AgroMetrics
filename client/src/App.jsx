@@ -1,63 +1,53 @@
 import { useState } from "react";
 import "./App.css"
 import axios from "axios";
-
+  
 function App() {
-  const [data, setData] = useState({
-    latitude: "",
-    longitude: "",
-    date: "",
-
-    t_mean: "",
-    t_max: "",
-    t_min: "",
-
-    rh_mean: "",
-    rh_min: "",
-
-    vpd_mean: "",
-    vpd_max: "",
-
-    precip: "",
-    rain: "",
-    snowfall: "",
-
-    wind_mean: "",
-    wind_max: "",
-    wind_gust_max: "",
-
-    soil_moisture: "",
-    soil_temperature: "",
-
-    precip_7d: "",
-    precip_14d: "",
-    precip_30d: "",
-
-    dry_days_7d: "",
-    dry_days_14d: "",
-    dry_days_30d: "",
-
-    hot_days_7d: "",
-    hot_days_14d: "",
-    hot_days_30d: "",
-
-    sukhovei_days_7d: "",
-    sukhovei_days_14d: "",
-    sukhovei_days_30d: "",
-
-    wind_mean_7d: "",
-    wind_max_7d: "",
-
-    vpd_mean_7d: "",
-    vpd_max_7d: "",
-
-    soil_moisture_7d: "",
-    soil_moisture_14d: "",
-    soil_moisture_30d: "",
-
-    snowfall_7d: "",
-    snowfall_14d: ""
+  let hazard = ''
+  const [data, setData] = useState({ 
+    temperature_mean: "", 
+    temperature_max: "", 
+    temperature_min: "", 
+    precipitation: "", 
+    snowfall: "", 
+    wind_speed_max: "", 
+    wind_gusts_max: "", 
+    et0: "", 
+    dew_point: "", 
+    humidity_mean: "", 
+    humidity_min: "", 
+    soil_moisture_0_7: "", 
+    soil_moisture_7_28: "", 
+    soil_moisture_28_100: "", 
+    soil_temperature_0_7: "", 
+    soil_temperature_7_28: "", 
+    soil_temperature_28_100: "", 
+    solar_radiation: "", 
+    cloud_cover: "", 
+    pressure: "", 
+    month: "" 
   })
+
+  const [alert, setAlert] = useState(false)
+
+  const [prediciton, setPrediction] = useState({
+    drought: "",
+    sukhovey: "",
+    early_snow: "",
+    overall:""
+  })
+
+  const getRiskClass = (percent) => {
+    if (percent >= 75) {
+        return "risk-high"
+    }
+
+    if (percent >= 45) {
+        return "risk-medium"
+    }
+
+    return "risk-low"
+ }
 
   const handleChange = (event) =>{
     const {name, value} = event.target
@@ -74,69 +64,30 @@ function App() {
 
     try {
 
-      const requestData = {
-        field_id: "react-field-001",
-
-        latitude: Number(data.latitude),
-        longitude: Number(data.longitude),
-
-        date: data.date,
-
-        features: {
-
-          t_mean: Number(data.t_mean),
-          t_max: Number(data.t_max),
-          t_min: Number(data.t_min),
-
-          rh_mean: Number(data.rh_mean),
-          rh_min: Number(data.rh_min),
-
-          vpd_mean: Number(data.vpd_mean),
-          vpd_max: Number(data.vpd_max),
-
-          precip: Number(data.precip),
-          rain: Number(data.rain),
-          snowfall: Number(data.snowfall),
-
-          wind_mean: Number(data.wind_mean),
-          wind_max: Number(data.wind_max),
-          wind_gust_max: Number(data.wind_gust_max),
-
-          soil_moisture: Number(data.soil_moisture),
-          soil_temperature: Number(data.soil_temperature),
-
-          precip_7d: Number(data.precip_7d),
-          precip_14d: Number(data.precip_14d),
-          precip_30d: Number(data.precip_30d),
-
-          dry_days_7d: Number(data.dry_days_7d),
-          dry_days_14d: Number(data.dry_days_14d),
-          dry_days_30d: Number(data.dry_days_30d),
-
-          hot_days_7d: Number(data.hot_days_7d),
-          hot_days_14d: Number(data.hot_days_14d),
-          hot_days_30d: Number(data.hot_days_30d),
-
-          sukhovei_days_7d: Number(data.sukhovei_days_7d),
-          sukhovei_days_14d: Number(data.sukhovei_days_14d),
-          sukhovei_days_30d: Number(data.sukhovei_days_30d),
-
-          wind_mean_7d: Number(data.wind_mean_7d),
-          wind_max_7d: Number(data.wind_max_7d),
-
-          vpd_mean_7d: Number(data.vpd_mean_7d),
-          vpd_max_7d: Number(data.vpd_max_7d),
-
-          soil_moisture_7d: Number(data.soil_moisture_7d),
-          soil_moisture_14d: Number(data.soil_moisture_14d),
-          soil_moisture_30d: Number(data.soil_moisture_30d),
-
-          snowfall_7d: Number(data.snowfall_7d),
-          snowfall_14d: Number(data.snowfall_14d)
-
-        }
-
+      const requestData = { 
+        temperature_mean: Number(data.temperature_mean), 
+        temperature_max: Number(data.temperature_max), 
+        temperature_min: Number(data.temperature_min), 
+        precipitation: Number(data.precipitation), 
+        snowfall: Number(data.snowfall), 
+        wind_speed_max: Number(data.wind_speed_max),
+        wind_gusts_max: Number(data.wind_gusts_max), 
+        et0: Number(data.et0), 
+        dew_point: Number(data.dew_point), 
+        humidity_mean: Number(data.humidity_mean), 
+        humidity_min: Number(data.humidity_min), 
+        soil_moisture_0_7: Number(data.soil_moisture_0_7), 
+        soil_moisture_7_28: Number(data.soil_moisture_7_28), 
+        soil_moisture_28_100: Number(data.soil_moisture_28_100), 
+        soil_temperature_0_7: Number(data.soil_temperature_0_7), 
+        soil_temperature_7_28: Number(data.soil_temperature_7_28), 
+        soil_temperature_28_100: Number(data.soil_temperature_28_100), 
+        solar_radiation: Number(data.solar_radiation), 
+        cloud_cover: Number(data.cloud_cover), 
+        pressure: Number(data.pressure), 
+        month: Number(data.month) 
       }
+
       console.log("Отправляем:", requestData)
       const response = await axios.post("/api/agro-risk/predict",
         requestData,
@@ -147,26 +98,31 @@ function App() {
       )
       const result = response.data
       console.log("Ответ:", result)
-      alert(
-      `Засуха: ${result.prediction.results.drought.risk.label}\n` +
-      `Суховей: ${result.prediction.results.sukhovei.risk.label}\n` +
-      `Ранний снег: ${result.prediction.results.early_snow.risk.label}`
-      )
+      if(result.prediction.overall.hazard == "drought"){
+        hazard = "Засуха"
+      }
+      setPrediction({
+        drought: result.prediction.risk.drought,
+        sukhovey: result.prediction.risk.sukhovey,
+        early_snow: result.prediction.risk.early_snow,
+        overall: hazard
+      })
+      setAlert(true)
     }catch(error){
       console.log("Ошибка", error)
       if (error.response) {
-        alert(
+        console.log(
           `Ошибка сервера: ${
             error.response.data.error || "Неизвестная ошибка"
           }`
         )
 
       } else if (error.request) {
-        alert(
+        console.log(
           "Не удалось подключиться к Node.js серверу"
         )
       } else {
-        alert(
+        console.log(
           `Ошибка: ${error.message}`
         )
       }
@@ -186,69 +142,69 @@ function App() {
           <form className="prediction__form" onSubmit={handleSend} >
             <div className="global__container">
               <div className="container1">
-                <input type="number" placeholder="Географическая широта поля"  name="latitude" value={data.latitude} onChange={handleChange} required/>
-                <input type="number" placeholder="Географическая долгота поля" name="longitude" value={data.longitude}  onChange={handleChange} required/>
-                <input type="text" placeholder="Дата, для которой рассчитывается риск." name="date" value={data.date} onChange={handleChange} required/>
-                <input type="number" placeholder="Средняя температура воздуха, °C." name="t_mean" value={data.t_mean} onChange={handleChange} required  min = '-30' max = '35' step = '0.1' />
-                <input type="number" placeholder="Максимальная температура, °C." name="t_max" value={data.t_max} onChange={handleChange} required min = '-30' max = '45' step = '0.1' />
-                <input type="number" placeholder="Минимальная температура, °C." name="t_min" value={data.t_min} onChange={handleChange} required min = '-40' max = '35' step = '0.1' />
-                <input type="number" placeholder="Средняя относительная влажность воздуха, %." name="rh_mean" value={data.rh_mean} onChange={handleChange} required min = '20' max = '100' step = '0.1' />
-                <input type="number" placeholder="Минимальная относительная влажность воздуха, %." name="rh_min" value={data.rh_min} onChange={handleChange} required min = '10' max = '100' step = '0.1' />
-                <input type="number" placeholder="Средний VPD." name="vpd_mean" value={data.vpd_mean} onChange={handleChange} required min = '0' max = '4' step = '0.1' />
-                <input type="number" placeholder="Максимальный VPD." name="vpd_max" value={data.vpd_max} onChange={handleChange} required min = '0' max = '6' step = '0.1' />
-                <input type="number" placeholder="Количество осадков за текущий период, мм." name="precip" value={data.precip} onChange={handleChange} required min = '0' max = '80' step = '0.1' />
-                <input type="number" placeholder="Количество именно дождевых осадков, мм." name="rain" value={data.rain} onChange={handleChange} required min = '0' max = '80' step = '0.1' />
-                <input type="number" placeholder="Количество снега, мм." name="snowfall" value={data.snowfall} onChange={handleChange} required min = '0' max = '50' step = '0.1' />
+                <input type="number" placeholder="Средняя температура, °C." name="temperature_mean" value={data.temperature_mean} onChange={handleChange} required min={-40} max={45} />
+                <input type="number" placeholder="Максимальная температура, °C." name="temperature_max" value={data.temperature_max} onChange={handleChange} required  min={-40} max={50} />
+                <input type="number" placeholder="Минимальная температура, °C." name="temperature_min" value={data.temperature_min} onChange={handleChange} required  min={-50} max={40} />
+                <input type="number" placeholder="Осадки, мм" name="precipitation" value={data.precipitation} onChange={handleChange} required  min={0} max={100} />
+                <input type="number" placeholder="Снегопад, см" name="snowfall" value={data.snowfall} onChange={handleChange} required  min={0} max={50} />
+                <input type="number" placeholder="Максимальная скорость ветра, км/ч" name="wind_speed_max" value={data.wind_speed_max} onChange={handleChange} required  min={0} max={150} />
+                <input type="number" placeholder="Максимальные порывы ветра, км/ч" name="wind_gusts_max" value={data.wind_gusts_max} onChange={handleChange} required  min={0} max={200} />
+                
               </div>
               <div className="container2">
-                <input type="number" placeholder="Средняя скорость ветра, м/c." name="wind_mean" value={data.wind_mean} onChange={handleChange} required min = '0' max = '12' step = '0.1' />
-                <input type="number" placeholder="Максимальная скорость ветра, м/c." name="wind_max" value={data.wind_max} onChange={handleChange} required min = '0' max = '20' step = '0.1' />
-                <input type="number" placeholder="Максимальная скорость порывов ветра, м/c." name="wind_gust_max" value={data.wind_gust_max} onChange={handleChange} required min = '0' max = '30' step = '0.1' />
-                <input type="number" placeholder="Влажность почвы, %." name="soil_moisture" value={data.soil_moisture} onChange={handleChange} required min = '0.05' max = '0.5' step = '0.01' />
-                <input type="number" placeholder="Температура почвы, °C." name="soil_temperature" value={data.soil_temperature} onChange={handleChange} required min = '-10' max = '40' step = '0.1' />
-                <input type="number" placeholder="Осадки за последние 7 дней, мм." name="precip_7d" value={data.precip_7d} onChange={handleChange} required min = '0' max = '150' step = '0.1' />
-                <input type="number" placeholder="Осадки за последние 14 дней, мм." name="precip_14d" value={data.precip_14d} onChange={handleChange} required min = '0' max = '250' step = '0.1' />
-                <input type="number" placeholder="Осадки за последние 30 дней, мм." name="precip_30d" value={data.precip_30d} onChange={handleChange} required min = '0' max = '400' step = '0.1' />
-                <input type="number" placeholder="Количество сухих дней за последние 7 дней, д." name="dry_days_7d" value={data.dry_days_7d} onChange={handleChange} required min = '0' max = '7'/>
-                <input type="number" placeholder="Количество сухих дней за последние 14 дней, д." name="dry_days_14d" value={data.dry_days_14d} onChange={handleChange} required min = '0' max = '14'/>
-                <input type="number" placeholder="Сухих дней за последние 30 дней, д." name="dry_days_30d" value={data.dry_days_30d} onChange={handleChange} required min = '0' max = '30'/>
-                <input type="number" placeholder="Жарких дней за последние 7 дней, д." name="hot_days_7d" value={data.hot_days_7d} onChange={handleChange} required min = '0' max = '7' />
-                <input type="number" placeholder="Жарких дней за последние 14 дней, д." name="hot_days_14d" value={data.hot_days_14d} onChange={handleChange} required min = '0' max = '14'/>
-              </div>
+                <input type="number" placeholder="ET0, мм" name="et0" value={data.et0} onChange={handleChange} required   min={0} max={15} />
+                <input type="number" placeholder="Точка росы, °C" name="dew_point" value={data.dew_point} onChange={handleChange} required   min={-50} max={35} />
+                <input type="number" placeholder="Средняя влажность, %" name="humidity_min" value={data.humidity_min} onChange={handleChange} required   min={0} max={100} />
+                <input type="number" placeholder="Минимальная влажность, %." name="soil_moisture" value={data.soil_moisture} onChange={handleChange} required min={0} max={100} />
+                <input type="number" placeholder="Влажность почвы 0–7 см" name="soil_moisture_0_7" value={data.soil_moisture_0_7} onChange={handleChange} required  min={0} max={1} step={0.001}/>
+                <input type="number" placeholder="Влажность почвы 7–28 см" name="soil_moisture_7_28" value={data.soil_moisture_7_28} onChange={handleChange} required  min={0} max={1} step={0.001}/>
+                <input type="number" placeholder="Влажность почвы 28–100 см" name="soil_moisture_28_100" value={data.soil_moisture_28_100} onChange={handleChange} required min={0} max={1} step={0.001}/>
+              </div> 
               <div className="container3">
-                <input type="number" placeholder="Жарких дней за последние 30 дней, д." name="hot_days_30d" value={data.hot_days_30d} onChange={handleChange} required min = '0' max = '30'/>
-                <input type="number" placeholder="Суховеев за последние 7 дней, д." name="sukhovei_days_7d" value={data.sukhovei_days_7d} onChange={handleChange} required min = '0' max = '7' />
-                <input type="number" placeholder="Суховеев за последние 14 дней, д." name="sukhovei_days_14d" value={data.sukhovei_days_14d} onChange={handleChange} required min = '0' max = '14' />
-                <input type="number" placeholder="Суховеев за последние 30 дней, д." name="sukhovei_days_30d" value={data.sukhovei_days_30d} onChange={handleChange} requiredmin = '0' max = '30' />
-                <input type="number" placeholder="Средняя скорость ветра за последние 7 дней, м/c." name="wind_mean_7d" value={data.wind_mean_7d} onChange={handleChange} required min = '0' max = '12' step = '0.1' />
-                <input type="number" placeholder="Максимальная скорость ветра за последние 7 дней, м/c." name="wind_max_7d" value={data.wind_max_7d} onChange={handleChange} required min = '0' max = '20' step = '0.1' />
-                <input type="number" placeholder="Средний VPD за последние 7 дней." name="vpd_mean_7d" value={data.vpd_mean_7d} onChange={handleChange} required min = '0' max = '4' step = '0.1' />
-                <input type="number" placeholder="Максимальный VPD за последние 7 дней." name="vpd_max_7d" value={data.vpd_max_7d} onChange={handleChange} required min = '0' max = '6' step = '0.1' />
-                <input type="number" placeholder="Влажность почвы за последние 7 дней, %." name="soil_moisture_7d" value={data.soil_moisture_7d} onChange={handleChange} required min = '0.05' max = '0.5' step = '0.01' />
-                <input type="number" placeholder="Влажность почвы за последние 14 дней, %" name="soil_moisture_14d" value={data.soil_moisture_14d} onChange={handleChange} required min = '0.05' max = '0.5' step = '0.01' />
-                <input type="number" placeholder="Влажность почвы за последние 30 дней, %." name="soil_moisture_30d" value={data.soil_moisture_30d} onChange={handleChange} requiredmin = '0.05' max = '0.5' step = '0.01' />
-                <input type="number" placeholder="Снега за последние 7 дней, д." name="snowfall_7d" value={data.snowfall_7d} onChange={handleChange} required min = '0' max = '50' step = '0.1' />
-                <input type="number" placeholder="Снега за последние 14 дней, д" name="snowfall_14d" value={data.snowfall_14d} onChange={handleChange} required min = '0' max = '100' step = '0.1' />
+                <input type="number" placeholder="Температура почвы 0–7 см, °C" name="soil_temperature_0_7" value={data.soil_temperature_0_7} onChange={handleChange} required  min={-40} max={50} />
+                <input type="number" placeholder="Температура почвы 7–28 см, °C" name="soil_temperature_7_28" value={data.soil_temperature_7_28} onChange={handleChange} required  min={-40} max={50} />
+                <input type="number" placeholder="Температура почвы 28–100 см, °C" name="soil_temperature_28_100" value={data.soil_temperature_28_100} onChange={handleChange} required  min={-20} max={40} />
+                <input type="number" placeholder="Солнечная радиация, MJ/m²" name="ssolar_radiation" value={data.ssolar_radiation} onChange={handleChange} required  min={0} max={40} />
+                <input type="number" placeholder="Облачность, %" name="cloud_cover" value={data.cloud_cover} onChange={handleChange} required min={0} max={100} />
+                <input type="number" placeholder="Давление, hPa" name="pressure" value={data.pressure} onChange={handleChange} required  min={850} max={1100} />
+                <input type="number" placeholder="Месяц (1–12)" name="month" value={data.month} onChange={handleChange} required  min={1} max={12} />
+               
               </div>
             </div>
             <button className="btn" type="submit">Отправить</button>
           </form>
         </section>
-        <table>
-          <tr>
-            <th>Засуха:aaaaa</th>
-          </tr>
-          <tr>
-            <th>Суховей:aaaaa</th>
-          </tr>
-          <tr>
-            <th>Ранний снег:aaaaa</th>
-          </tr>
+        {alert &&  
+          <table>
+              <thead>
+                <tr>
+                    <th>Опасность</th>
+                    <th>Вероятность</th>
+                    <th>Риск</th>
+                </tr>
+              </thead>  
+            <tbody>
+            <tr className={getRiskClass(prediciton.drought.probability_percent)}>
+                <td>Засуха</td>
+                <td>{prediciton.drought.probability_percent}%</td>
+                <td>{prediciton.drought.risk}</td>
+            </tr>
+
+            <tr className={getRiskClass(prediciton.sukhovey.probability_percent)}>
+                <td>Суховей</td>
+                <td>{prediciton.sukhovey.probability_percent}%</td>
+                <td>{prediciton.sukhovey.risk}</td>
+            </tr>
+
+            <tr className={getRiskClass(prediciton.early_snow.probability_percent)}>
+                <td>Ранний снег</td>
+                <td>{prediciton.early_snow.probability_percent}%</td>
+                <td>{prediciton.early_snow.risk}</td>
+            </tr>
+          </tbody>
         </table>
+      }
       </main>
-      <footer>
-        <h1 className="foottext">AgroMetrics</h1>
-      </footer>
     </div>
   )
 }

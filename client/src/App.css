@@ -27,8 +27,9 @@
 
 .global__container{
   display: grid;
-  grid-template-columns: 25% 25% 25%;
+  grid-template-columns: 30% 30% 30%;
   justify-content: space-between;
+  margin-left: 60px;
 }
 
 .container1{
@@ -52,7 +53,7 @@
   border: 2px solid #91AF82 ;
   border-radius: 4px;
   height: 40px;
-  width: 120%;
+  width: 100%;
   padding-left: 10px
 }
 
@@ -112,3 +113,23 @@ footer{
   color: white;
 }
 
+.risk-low {
+  background: #dcfce7;
+}
+
+.risk-medium {
+  background: #fef3c7;
+}
+
+.risk-high {
+  background: #fee2e2;
+}
+
+@media (max-width: 768px) {
+  .prediction__form input{
+    font-size: 10px;
+  }
+  .global__container{
+    margin-left: 0;
+  }
+}
