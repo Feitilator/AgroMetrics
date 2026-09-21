@@ -234,7 +234,21 @@ function App() {
             <button className="btn" type="submit">Отправить</button>
           </form>
         </section>
+        <table>
+          <tr>
+            <th>Засуха:aaaaa</th>
+          </tr>
+          <tr>
+            <th>Суховей:aaaaa</th>
+          </tr>
+          <tr>
+            <th>Ранний снег:aaaaa</th>
+          </tr>
+        </table>
       </main>
+      <footer>
+        <h1 className="foottext">AgroMetrics</h1>
+      </footer>
     </div>
   )
 }
