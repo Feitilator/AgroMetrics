@@ -7,29 +7,29 @@ AgroMetrics - аналитический подход к оценке засух
 
 ### Используемый стек
 #### DataSet
-Open-MetEeo =
-https://open-meteo.com/ , https://open-meteo.com/en/docs/historical-weather-api
+Open-MetEeo = https://open-meteo.com/ , https://open-meteo.com/en/docs/historical-weather-api
 #### Backend
 Python
 
-NodeJS - ExpressJS
+NodeJS ExpressJS
 #### Frontend
-React HTML CSS
+ReactJS HTML CSS
 
 ### Инструкция запуска
+клонировать проект __git clone https://github.com/Feitilator/AgroMetrics__ или скачать из репозитория
 # Python(ML + API)
 Открыть папку ml-model в Pycharm
-написать в терминал pip install -r requirements.txt для установки зависимостей
-запустить сервер введя uvicorn app:app --reload в терминал
+Создать виртуальную среду для Python и написать в терминал __pip install -r requirements.txt__ для установки зависимостей
+запустить сервер введя __uvicorn app:app --reload__ в терминал
 # NodeJs Expressjs (Основной бэкенд)
 Открыть папку backend в VScode
-написать в терминал npm i для установки зависимостей
-запустить бэкенд командой npm start
+написать в терминал __npm i__ для установки зависимостей
+запустить бэкенд командой __npm start__
 # React(Frontend)
 Открыть папку client в VScode
-написать в терминал npm i для установки зависимостей
-запустить Frontend командой npm run dev
-и открыть ссылку http://localhost:5173/ в браузере
+написать в терминал __npm i__ для установки зависимостей
+запустить Frontend командой __npm run dev__
+и открыть ссылку __http://localhost:5173/__ в браузере
 
 ### Источники данных
 Open-Meteo = https://open-meteo.com/ , https://open-meteo.com/en/docs/historical-weather-api
