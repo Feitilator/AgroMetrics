@@ -5,52 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc72da5c-43f9-4636-8d6c-19becd5034cd" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.cache.sqlite" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ml-model.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ml-model.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2010-01-01_2010-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2011-01-01_2011-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2012-01-01_2012-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2013-01-01_2013-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2014-01-01_2014-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2015-01-01_2015-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2016-01-01_2016-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2017-01-01_2017-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2018-01-01_2018-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2019-01-01_2019-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2020-01-01_2020-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2021-01-01_2021-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2022-01-01_2022-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2023-01-01_2023-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2024-01-01_2024-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_2025-01-01_2025-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2010-01-01_2010-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2011-01-01_2011-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2012-01-01_2012-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2013-01-01_2013-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2014-01-01_2014-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2015-01-01_2015-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2016-01-01_2016-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2017-01-01_2017-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2018-01-01_2018-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2019-01-01_2019-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2020-01-01_2020-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2021-01-01_2021-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2022-01-01_2022-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2023-01-01_2023-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2024-01-01_2024-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.weather_cache/era5_land_2025-01-01_2025-12-31.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/api.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/features.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/manual_predict.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/drought.joblib" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/early_snow.joblib" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/sukhovei.joblib" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/openmeteo_client.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/predict.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/targets.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/predict.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/predict.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/preprocessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/preprocessing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,6 +45,8 @@
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "develope",
     "last_opened_file_path": "E:/AgroMetrics/ml-model",
+    "node.js.detected.package.jshint": "true",
+    "node.js.selected.package.jshint": "",
     "nodejs_package_manager_path": "npm",
     "python.packages.toolwindow.project.migrated.to.right.top.v2": "true"
   }
@@ -108,7 +70,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1789969043975</updated>
-      <workItem from="1789969046584" duration="10197000" />
+      <workItem from="1789969046584" duration="12722000" />
     </task>
     <servers />
   </component>

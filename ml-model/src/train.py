@@ -15,9 +15,6 @@ from sklearn.metrics import (
 )
 
 
-# ============================================================
-# НАСТРОЙКИ
-# ============================================================
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -42,9 +39,6 @@ os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 
-# ============================================================
-# ПРИЗНАКИ
-# ============================================================
 
 FEATURES = [
     "temperature_mean",
@@ -86,9 +80,6 @@ TARGETS = {
 }
 
 
-# ============================================================
-# ЗАГРУЗКА
-# ============================================================
 
 def load_dataset():
 
@@ -102,9 +93,6 @@ def load_dataset():
     return df
 
 
-# ============================================================
-# ОБУЧЕНИЕ ОДНОЙ МОДЕЛИ
-# ============================================================
 
 def train_model(df, target_name, target_column):
 
@@ -144,9 +132,6 @@ def train_model(df, target_name, target_column):
             "для этого класса может быть нестабильным."
         )
 
-    # --------------------------------------------------------
-    # TRAIN / TEST
-    # --------------------------------------------------------
 
     X_train, X_test, y_train, y_test = train_test_split(
         X,
@@ -159,9 +144,7 @@ def train_model(df, target_name, target_column):
     print("\nTrain:", len(X_train))
     print("Test :", len(X_test))
 
-    # --------------------------------------------------------
-    # RANDOM FOREST
-    # --------------------------------------------------------
+
 
     model = RandomForestClassifier(
         n_estimators=400,
@@ -181,15 +164,9 @@ def train_model(df, target_name, target_column):
 
     print("Модель обучена.")
 
-    # --------------------------------------------------------
-    # PREDICTION
-    # --------------------------------------------------------
 
     y_pred = model.predict(X_test)
 
-    # --------------------------------------------------------
-    # METRICS
-    # --------------------------------------------------------
 
     accuracy = accuracy_score(
         y_test,
@@ -241,9 +218,6 @@ def train_model(df, target_name, target_column):
 
     print(matrix)
 
-    # --------------------------------------------------------
-    # СОХРАНЕНИЕ МОДЕЛИ
-    # --------------------------------------------------------
 
     model_file = os.path.join(
         MODELS_DIR,
@@ -261,9 +235,6 @@ def train_model(df, target_name, target_column):
 
     print(model_file)
 
-    # --------------------------------------------------------
-    # СОХРАНЯЕМ FEATURES
-    # --------------------------------------------------------
 
     features_file = os.path.join(
         MODELS_DIR,
@@ -283,9 +254,6 @@ def train_model(df, target_name, target_column):
             indent=4
         )
 
-    # --------------------------------------------------------
-    # FEATURE IMPORTANCE
-    # --------------------------------------------------------
 
     importance = pd.DataFrame({
         "feature": FEATURES,
@@ -307,9 +275,6 @@ def train_model(df, target_name, target_column):
         index=False
     )
 
-    # --------------------------------------------------------
-    # METRICS JSON
-    # --------------------------------------------------------
 
     metrics = {
         "model": target_name,
@@ -344,9 +309,6 @@ def train_model(df, target_name, target_column):
             indent=4
         )
 
-    # --------------------------------------------------------
-    # TOP FEATURES
-    # --------------------------------------------------------
 
     print("\nТоп параметров:")
 
@@ -359,9 +321,6 @@ def train_model(df, target_name, target_column):
     return model
 
 
-# ============================================================
-# MAIN
-# ============================================================
 
 def main():
 
@@ -372,7 +331,6 @@ def main():
 
     df = load_dataset()
 
-    # Проверяем признаки
 
     missing_features = [
         feature
@@ -393,7 +351,6 @@ def main():
 
         return
 
-    # Обучаем все три модели
 
     for target_name, target_column in TARGETS.items():
 

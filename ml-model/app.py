@@ -8,9 +8,6 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 
-# ============================================================
-# AGROMETRICS API
-# ============================================================
 
 app = FastAPI(
     title="AgroMetrics Risk API",
@@ -19,17 +16,12 @@ app = FastAPI(
 )
 
 
-# ============================================================
-# PATHS
-# ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "models"
 
 
-# ============================================================
-# FEATURES
-# ============================================================
+
 
 FEATURES = [
     "temperature_mean",
@@ -56,9 +48,6 @@ FEATURES = [
 ]
 
 
-# ============================================================
-# REQUEST MODEL
-# ============================================================
 
 class RiskRequest(BaseModel):
 
@@ -94,9 +83,6 @@ class RiskRequest(BaseModel):
     month: int = Field(..., ge=1, le=12, description="Месяц")
 
 
-# ============================================================
-# MODEL LOADING
-# ============================================================
 
 MODELS = {}
 
@@ -120,13 +106,11 @@ def load_models():
         MODELS[name] = joblib.load(model_path)
 
 
-# Загружаем модели при запуске
+
 load_models()
 
 
-# ============================================================
-# RISK LEVEL
-# ============================================================
+
 
 def get_risk_level(probability: float) -> str:
 
@@ -139,68 +123,36 @@ def get_risk_level(probability: float) -> str:
     return "LOW"
 
 
-# ============================================================
-# PREDICTION
-# ============================================================
+
 
 def predict_target(name: str, data: dict):
 
-    package = MODELS[name]
-
-    model = package["model"]
+    model = MODELS[name]
 
     row = pd.DataFrame([data])
 
-    # Берём только признаки, которые использовались моделью
-    model_features = package.get("features", FEATURES)
 
-    row = row[model_features]
+    row = row[FEATURES]
 
-    # Защита от NaN / inf
     row = (
         row
         .replace([np.inf, -np.inf], np.nan)
         .fillna(0)
     )
 
-    # Основная модель
-    raw_probability = model.predict_proba(row)[:, 1][0]
-
-    # Если есть calibrator — используем его
-    if "calibrator" in package:
-
-        calibrated_probability = package["calibrator"].predict_proba(
-            np.log(
-                np.clip(
-                    raw_probability,
-                    1e-6,
-                    1 - 1e-6
-                )
-            ).reshape(-1, 1)
-        )[:, 1][0]
-
-        probability = float(calibrated_probability)
-
-    else:
-        probability = float(raw_probability)
-
-    # Threshold
-    threshold = float(
-        package.get("threshold", 0.5)
+    probability = float(
+        model.predict_proba(row)[0][1]
     )
 
     return {
         "probability": round(probability, 4),
         "probability_percent": round(probability * 100, 2),
-        "threshold": threshold,
-        "alert": bool(probability >= threshold),
+        "threshold": 0.5,
+        "alert": bool(probability >= 0.5),
         "risk": get_risk_level(probability)
     }
 
 
-# ============================================================
-# ROOT
-# ============================================================
 
 @app.get("/")
 def root():
@@ -218,9 +170,7 @@ def root():
     }
 
 
-# ============================================================
-# HEALTH CHECK
-# ============================================================
+
 
 @app.get("/health")
 def health():
@@ -231,9 +181,6 @@ def health():
     }
 
 
-# ============================================================
-# RISK
-# ============================================================
 
 @app.post("/risk")
 def risk(request: RiskRequest):
@@ -297,9 +244,7 @@ def risk(request: RiskRequest):
         )
 
 
-# ============================================================
-# STARTUP INFO
-# ============================================================
+
 
 @app.on_event("startup")
 def startup_event():
